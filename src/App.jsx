@@ -1,9 +1,31 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Login from './components/Login'
 import Dashboard from './components/Dashboard'
 
 function App() {
   const [auth, setAuth] = useState(null)
+
+  // Restore session from localStorage on first load
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('itops_auth')
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (parsed?.token && parsed?.nik) setAuth(parsed)
+      }
+    } catch (_) {}
+  }, [])
+
+  // Persist session to localStorage
+  useEffect(() => {
+    if (auth) {
+      localStorage.setItem('itops_auth', JSON.stringify(auth))
+    } else {
+      localStorage.removeItem('itops_auth')
+    }
+  }, [auth])
+
+  const handleLogout = () => setAuth(null)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
@@ -14,7 +36,7 @@ function App() {
           {auth && (
             <div className="flex items-center gap-3 text-sm text-slate-300">
               <span>{auth.nik}</span>
-              <button onClick={() => setAuth(null)} className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700">Keluar</button>
+              <button onClick={handleLogout} className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 hover:bg-slate-700">Keluar</button>
             </div>
           )}
         </header>
